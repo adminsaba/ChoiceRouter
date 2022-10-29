@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3f2ec4ae-7796-457a-b126-edcf971958b1" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<flow name="poc1Flow" doc:id="3a77d409-bdeb-4496-b5a7-7244f3597f8f" >
+		<http:listener doc:name="Listener" doc:id="54ff0939-4413-4c0c-ad36-fc6ca86c3644" config-ref="HTTP_Listener_config" path="/test/{name}/{id}/{country}"/>
+		<logger level="INFO" doc:name="Start Logger" doc:id="d45e6b70-4823-4bdc-b146-65200eb97b42" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"Name": attributes.uriParams.name,&#10;	"Id": attributes.uriParams.id,&#10;	"Country": attributes.uriParams.country&#10;}]' doc:name="uriParams" doc:id="016d4c42-e298-42fb-b240-801dad8c8333" variableName="params"/>
+		<logger level="INFO" doc:name="Name Logger" doc:id="da9eb6e0-81a6-4d89-94d7-a1e376788f49" message="#[vars.name]" category="Name Logger"/>
+		<choice doc:name="Choice" doc:id="6cae3047-a3e7-4b2f-a860-9f8e5973b77f" >
+			<when expression='#[attributes.uriParams.name == "virat"]'>
+				<logger level="INFO" doc:name="Name Logger" doc:id="0acaebe8-6d11-42dd-8250-96a5b8c447d0" />
+				<ee:transform doc:name="Name" doc:id="7a6f226c-fe53-4b83-9730-9e0fceea9f75" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+	"Name": attributes.uriParams.name
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[attributes.uriParams.country == "india"]'>
+				<logger level="INFO" doc:name="Country Logger" doc:id="01ad2a2f-917d-427d-a449-37f1bb880348" />
+				<ee:transform doc:name="Country" doc:id="6dd81e2e-5a1b-4a9d-ae5d-5409d893fe14" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+	"Country": attributes.uriParams.country
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Default Logger" doc:id="0111c1d7-6684-40d5-b994-c4c8d097bd0b" message='#["No Matching URI Params found"]'/>
+				<ee:transform doc:name="Transform Message" doc:id="5f559c5c-1e58-41ce-afff-33161b5230ff" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	
+	"Message": "No Matching URI Params found"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
